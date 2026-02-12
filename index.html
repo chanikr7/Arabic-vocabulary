@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לימוד ערבית - Arabic Learning</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        h2 {
+            color: #555;
+            margin: 20px 0 10px 0;
+        }
+        
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        input, textarea, select, button {
+            font-size: 16px;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input, select {
+            width: 100%;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            font-family: monospace;
+            direction: ltr;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 12px 20px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button.secondary {
+            background-color: #008CBA;
+        }
+        
+        button.secondary:hover {
+            background-color: #007399;
+        }
+        
+        button.danger {
+            background-color: #f44336;
+        }
+        
+        button.danger:hover {
+            background-color: #da190b;
+        }
+        
+        .list-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .flashcard {
+            width: 100%;
+            height: 300px;
+            background-color: white;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.3s;
+        }
+        
+        .flashcard:hover {
+            transform: scale(1.02);
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .quiz-option {
+            padding: 20px;
+            font-size: 18px;
+            background-color: #e7e7e7;
+            border: 2px solid #ddd;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .quiz-option.correct {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .quiz-option.wrong {
+            background-color: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+        
+        .quiz-word {
+            font-size: 28px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .score {
+            text-align: center;
+            font-size: 20px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .button-group button {
+            flex: 1;
+        }
+        
+        .nikud-btn {
+            padding: 8px 4px;
+            font-size: 14px;
+            background-color: #3f5599;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .nikud-btn:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>לימוד ערבית</h1>
+    
+    <!-- Main Menu -->
+    <div id="mainMenu" class="section">
+        <h2>תפריט ראשי</h2>
+        <div class="button-group">
+            <button onclick="showSection('manageListsSection')">ניהול רשימות מילים</button>
+            <button onclick="showSection('flashcardsSection')" class="secondary">משחק כרטיסיות</button>
+            <button onclick="showSection('quizSection')" class="secondary">משחק התאמה</button>
+        </div>
+    </div>
+    
+    <!-- Manage Lists Section -->
+    <div id="manageListsSection" class="section hidden">
+        <h2>ניהול רשימות מילים</h2>
+        
+        <div style="margin: 20px 0;">
+            <label>שם רשימה חדשה:</label>
+            <input type="text" id="newListName" placeholder="לדוגמה: מזון, משפחה, פעלים...">
+            <button onclick="createNewList()">צור רשימה חדשה</button>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <label>בחר רשימה לעריכה:</label>
+            <select id="listSelector" onchange="loadListForEditing()">
+                <option value="">-- בחר רשימה --</option>
+            </select>
+        </div>
+        
+        <div id="editListSection" class="hidden">
+            <h3>עריכת רשימה: <span id="currentListName"></span></h3>
+            
+            <p>הכנס זוגות מילים בפורמט: עברית - ערבית (זוג אחד בכל שורה)</p>
+            <textarea id="wordListInput" placeholder="שָׁלוֹם - مرحبا&#10;תּוֹדָה - شكرا&#10;בּוֹקֶר טוֹב - صباح الخير"></textarea>
+            
+            <div style="background-color: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0;">
+                
+                <div style="margin-bottom: 10px;">
+                    <strong>ניקוד עברי:</strong>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 5px; margin-top: 5px;">
+                        <button onclick="addNikudToTextarea('\u05B0')" class="nikud-btn" title="שְׁוָא">ְ שווא</button>
+                        <button onclick="addNikudToTextarea('\u05B4')" class="nikud-btn" title="חִירִיק">ִ חיריק</button>
+                        <button onclick="addNikudToTextarea('\u05B5')" class="nikud-btn" title="צֵירֵי">ֵ צירי</button>
+                        <button onclick="addNikudToTextarea('\u05B6')" class="nikud-btn" title="סֶגוֹל">ֶ סגול</button>
+                        <button onclick="addNikudToTextarea('\u05B7')" class="nikud-btn" title="פַּתַח">ַ פתח</button>
+                        <button onclick="addNikudToTextarea('\u05B9')" class="nikud-btn" title="חוֹלָם">ֹ חולם</button>
+                        <button onclick="addNikudToTextarea('\u05BB')" class="nikud-btn" title="קֻבּוּץ">ֻ קובוץ</button>
+                        <button onclick="addNikudToTextarea('\u05BC')" class="nikud-btn" title="דָּגֵשׁ">ּ דגש</button>
+                        <button onclick="addNikudToTextarea('\u05C1')" class="nikud-btn" title="שִׁין">ׁ שין</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <strong>ניקוד ערבי:</strong>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 5px; margin-top: 5px;">
+                        <button onclick="addNikudToTextarea('\u064E')" class="nikud-btn" title="فَتْحَة">َ פתחה</button>
+                        <button onclick="addNikudToTextarea('\u064B')" class="nikud-btn" title="فَتْحَتَان">ً פתחתיים</button>
+                        <button onclick="addNikudToTextarea('\u0650')" class="nikud-btn" title="كَسْرَة">ِ כסרה</button>
+                        <button onclick="addNikudToTextarea('\u064D')" class="nikud-btn" title="كَسْرَتَان">ٍ כסרתיים</button>
+                        <button onclick="addNikudToTextarea('\u064F')" class="nikud-btn" title="ضَمَّة">ُ דמה</button>
+                        <button onclick="addNikudToTextarea('\u064C')" class="nikud-btn" title="ضَمَّتَان">ٌ דמתיים</button>
+                        <button onclick="addNikudToTextarea('\u0652')" class="nikud-btn" title="سُكُون">ْ סוכון</button>
+                        <button onclick="addNikudToTextarea('\u0651')" class="nikud-btn" title="شَدَّة">ّ שדה</button>
+                    </div>
+                </div>
+                
+                 <p style="font-size: 12px; margin-top: 10px; color: #666;">מקם את הסמן אחרי האות שברצונך לנקד</p>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="saveWordList()">שמור רשימה</button>
+                <button onclick="deleteCurrentList()" class="danger">מחק רשימה</button>
+            </div>
+        </div>
+        
+        <button onclick="showSection('mainMenu')" style="margin-top: 20px;">חזור לתפריט</button>
+    </div>
+    
+    <!-- Flashcards Section -->
+    <div id="flashcardsSection" class="section hidden">
+        <h2>משחק כרטיסיות</h2>
+        
+        <div style="margin: 20px 0;">
+            <label>בחר רשימה:</label>
+            <select id="flashcardListSelector" onchange="startFlashcards()">
+                <option value="">-- בחר רשימה --</option>
+            </select>
+        </div>
+        
+        <div id="flashcardGame" class="hidden">
+            <div class="score">כרטיסייה <span id="cardNumber">1</span> מתוך <span id="totalCards">0</span></div>
+            <div id="flashcard" class="flashcard" onclick="flipCard()">
+                <span id="cardText"></span>
+            </div>
+            <div class="button-group">
+                <button onclick="previousCard()">← הקודם</button>
+                <button onclick="nextCard()">הבא →</button>
+            </div>
+            <button onclick="shuffleCards()" class="secondary" style="width: 100%; margin-top: 10px;">ערבב כרטיסיות</button>
+        </div>
+        
+        <button onclick="showSection('mainMenu')" style="margin-top: 20px;">חזור לתפריט</button>
+    </div>
+    
+    <!-- Quiz Section -->
+    <div id="quizSection" class="section hidden">
+        <h2>משחק התאמה</h2>
+        
+        <div style="margin: 20px 0;">
+            <label>בחר רשימה:</label>
+            <select id="quizListSelector" onchange="startQuiz()">
+                <option value="">-- בחר רשימה --</option>
+            </select>
+        </div>
+        
+        <div id="quizGame" class="hidden">
+            <div class="score">ניקוד: <span id="score">0</span> / <span id="totalQuestions">0</span></div>
+            <div class="quiz-word" id="quizWord"></div>
+            <div class="quiz-options" id="quizOptions"></div>
+            <button onclick="nextQuestion()" id="nextButton" class="hidden" style="width: 100%;">שאלה הבאה</button>
+        </div>
+        
+        <button onclick="showSection('mainMenu')" style="margin-top: 20px;">חזור לתפריט</button>
+    </div>
+
+    <script>
+        // Global variables
+        let wordLists = {};
+        let currentListName = '';
+        let flashcardData = [];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        let quizData = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        // Load data from localStorage on page load
+        window.onload = function() {
+            loadAllLists();
+            updateListSelectors();
+        };
+
+        // Load all lists from localStorage
+        function loadAllLists() {
+            const saved = localStorage.getItem('arabicWordLists');
+            if (saved) {
+                wordLists = JSON.parse(saved);
+            }
+        }
+
+        // Save all lists to localStorage
+        function saveAllLists() {
+            localStorage.setItem('arabicWordLists', JSON.stringify(wordLists));
+        }
+
+        // Update all list selector dropdowns
+        function updateListSelectors() {
+            const listNames = Object.keys(wordLists);
+            const selectors = ['listSelector', 'flashcardListSelector', 'quizListSelector'];
+            
+            selectors.forEach(selectorId => {
+                const selector = document.getElementById(selectorId);
+                selector.innerHTML = '<option value="">-- בחר רשימה --</option>';
+                listNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    selector.appendChild(option);
+                });
+            });
+        }
+
+        // Show a specific section and hide others
+        function showSection(sectionId) {
+            const sections = ['mainMenu', 'manageListsSection', 'flashcardsSection', 'quizSection'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // Create a new list
+        function createNewList() {
+            const nameInput = document.getElementById('newListName');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('אנא הכנס שם לרשימה');
+                return;
+            }
+            
+            if (wordLists[name]) {
+                alert('רשימה בשם זה כבר קיימת');
+                return;
+            }
+            
+            wordLists[name] = [];
+            saveAllLists();
+            updateListSelectors();
+            nameInput.value = '';
+            
+            // Automatically select the new list for editing
+            document.getElementById('listSelector').value = name;
+            loadListForEditing();
+        }
+
+        // Load a list for editing
+        function loadListForEditing() {
+            const selector = document.getElementById('listSelector');
+            const listName = selector.value;
+            
+            if (!listName) {
+                document.getElementById('editListSection').classList.add('hidden');
+                return;
+            }
+            
+            currentListName = listName;
+            document.getElementById('currentListName').textContent = listName;
+            document.getElementById('editListSection').classList.remove('hidden');
+            
+            // Load existing words into textarea
+            const words = wordLists[listName];
+            const textarea = document.getElementById('wordListInput');
+            textarea.value = words.join('\n');
+        }
+
+        // Save the current word list
+        function saveWordList() {
+            if (!currentListName) return;
+            
+            const textarea = document.getElementById('wordListInput');
+            const lines = textarea.value.split('\n').filter(line => line.trim());
+            
+            wordLists[currentListName] = lines;
+            saveAllLists();
+            alert('הרשימה נשמרה בהצלחה!');
+        }
+
+        // Delete the current list
+        function deleteCurrentList() {
+            if (!currentListName) return;
+            
+            if (confirm(`האם אתה בטוח שברצונך למחוק את הרשימה "${currentListName}"?`)) {
+                delete wordLists[currentListName];
+                saveAllLists();
+                updateListSelectors();
+                document.getElementById('editListSection').classList.add('hidden');
+                document.getElementById('listSelector').value = '';
+                currentListName = '';
+            }
+        }
+
+        // Add nikud character directly to the textarea at cursor position
+        function addNikudToTextarea(nikudChar) {
+            const textarea = document.getElementById('wordListInput');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            // Insert nikud at cursor position
+            textarea.value = text.substring(0, start) + nikudChar + text.substring(end);
+            
+            // Move cursor after the inserted nikud
+            textarea.selectionStart = textarea.selectionEnd = start + nikudChar.length;
+            textarea.focus();
+        }
+
+        // Parse a word pair line
+        function parseWordPair(line) {
+            const parts = line.split('-').map(s => s.trim());
+            if (parts.length === 2) {
+                return { hebrew: parts[0], arabic: parts[1] };
+            }
+            return null;
+        }
+
+        // Start flashcards
+        function startFlashcards() {
+            const selector = document.getElementById('flashcardListSelector');
+            const listName = selector.value;
+            
+            if (!listName || !wordLists[listName]) {
+                document.getElementById('flashcardGame').classList.add('hidden');
+                return;
+            }
+            
+            flashcardData = wordLists[listName]
+                .map(parseWordPair)
+                .filter(pair => pair !== null);
+            
+            if (flashcardData.length === 0) {
+                alert('הרשימה ריקה או לא תקינה');
+                return;
+            }
+            
+            currentCardIndex = 0;
+            isFlipped = false;
+            document.getElementById('flashcardGame').classList.remove('hidden');
+            document.getElementById('totalCards').textContent = flashcardData.length;
+            showCard();
+        }
+
+        // Show current flashcard
+        function showCard() {
+            if (flashcardData.length === 0) return;
+            
+            const card = flashcardData[currentCardIndex];
+            document.getElementById('cardNumber').textContent = currentCardIndex + 1;
+            document.getElementById('cardText').textContent = isFlipped ? card.arabic : card.hebrew;
+        }
+
+        // Flip the flashcard
+        function flipCard() {
+            isFlipped = !isFlipped;
+            showCard();
+        }
+
+        // Next card
+        function nextCard() {
+            if (flashcardData.length === 0) return;
+            currentCardIndex = (currentCardIndex + 1) % flashcardData.length;
+            isFlipped = false;
+            showCard();
+        }
+
+        // Previous card
+        function previousCard() {
+            if (flashcardData.length === 0) return;
+            currentCardIndex = (currentCardIndex - 1 + flashcardData.length) % flashcardData.length;
+            isFlipped = false;
+            showCard();
+        }
+
+        // Shuffle flashcards
+        function shuffleCards() {
+            for (let i = flashcardData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcardData[i], flashcardData[j]] = [flashcardData[j], flashcardData[i]];
+            }
+            currentCardIndex = 0;
+            isFlipped = false;
+            showCard();
+        }
+
+        // Start quiz
+        function startQuiz() {
+            const selector = document.getElementById('quizListSelector');
+            const listName = selector.value;
+            
+            if (!listName || !wordLists[listName]) {
+                document.getElementById('quizGame').classList.add('hidden');
+                return;
+            }
+            
+            quizData = wordLists[listName]
+                .map(parseWordPair)
+                .filter(pair => pair !== null);
+            
+            if (quizData.length < 2) {
+                alert('צריך לפחות 2 זוגות מילים למשחק זה');
+                return;
+            }
+            
+            // Shuffle quiz data
+            for (let i = quizData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [quizData[i], quizData[j]] = [quizData[j], quizData[i]];
+            }
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            answered = false;
+            document.getElementById('quizGame').classList.remove('hidden');
+            document.getElementById('totalQuestions').textContent = quizData.length;
+            showQuestion();
+        }
+
+        // Show current question
+        function showQuestion() {
+            if (currentQuestionIndex >= quizData.length) {
+                showFinalScore();
+                return;
+            }
+            
+            answered = false;
+            const currentPair = quizData[currentQuestionIndex];
+            document.getElementById('quizWord').textContent = currentPair.hebrew;
+            document.getElementById('score').textContent = score;
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            // Generate wrong answers (up to 3, or as many as available)
+            const wrongAnswers = [];
+            const maxWrongAnswers = Math.min(3, quizData.length - 1);
+            while (wrongAnswers.length < maxWrongAnswers) {
+                const randomPair = quizData[Math.floor(Math.random() * quizData.length)];
+                if (randomPair !== currentPair && !wrongAnswers.includes(randomPair.arabic)) {
+                    wrongAnswers.push(randomPair.arabic);
+                }
+            }
+            
+            // Combine correct and wrong answers
+            const allAnswers = [currentPair.arabic, ...wrongAnswers];
+            
+            // Shuffle answers
+            for (let i = allAnswers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
+            }
+            
+            // Display options
+            const optionsDiv = document.getElementById('quizOptions');
+            optionsDiv.innerHTML = '';
+            allAnswers.forEach(answer => {
+                const button = document.createElement('button');
+                button.className = 'quiz-option';
+                button.textContent = answer;
+                button.onclick = () => checkAnswer(answer, currentPair.arabic, button);
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        // Check answer
+        function checkAnswer(selected, correct, button) {
+            if (answered) return;
+            answered = true;
+            
+            const allButtons = document.querySelectorAll('.quiz-option');
+            
+            if (selected === correct) {
+                button.classList.add('correct');
+                score++;
+                document.getElementById('score').textContent = score;
+            } else {
+                button.classList.add('wrong');
+                // Highlight the correct answer
+                allButtons.forEach(btn => {
+                    if (btn.textContent === correct) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            
+            // Disable all buttons
+            allButtons.forEach(btn => btn.onclick = null);
+            
+            document.getElementById('nextButton').classList.remove('hidden');
+        }
+
+        // Next question
+        function nextQuestion() {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        // Show final score
+        function showFinalScore() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            document.getElementById('quizWord').textContent = `סיימת! הניקוד שלך: ${score}/${quizData.length} (${percentage}%)`;
+            document.getElementById('quizOptions').innerHTML = '';
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            const restartButton = document.createElement('button');
+            restartButton.textContent = 'התחל מחדש';
+            restartButton.style.width = '100%';
+            restartButton.onclick = startQuiz;
+            document.getElementById('quizOptions').appendChild(restartButton);
+        }
+    </script>
+</body>
+</html>
